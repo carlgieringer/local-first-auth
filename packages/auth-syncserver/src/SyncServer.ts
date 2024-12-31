@@ -1,4 +1,4 @@
-import { Repo } from '@automerge/automerge-repo'
+import { Repo, StorageAdapterInterface } from '@automerge/automerge-repo'
 import { NodeWSServerAdapter } from '@automerge/automerge-repo-network-websocket'
 import { NodeFSStorageAdapter } from '@automerge/automerge-repo-storage-nodefs'
 import {
@@ -60,12 +60,13 @@ export class LocalFirstAuthSyncServer {
   async listen(
     options: {
       port?: number
+      storage?: StorageAdapterInterface
       storageDir?: string
       silent?: boolean
     } = {}
   ) {
     return new Promise<void>(resolve => {
-      const { port = 3000, storageDir = 'automerge-repo-data', silent = false } = options
+      const { port = 3000, storageDir = 'automerge-repo-data', storage = new NodeFSStorageAdapter(storageDir), silent = false } = options
       this.storageDir = storageDir
 
       if (!fs.existsSync(storageDir)) fs.mkdirSync(storageDir)
@@ -85,7 +86,6 @@ export class LocalFirstAuthSyncServer {
       const server: ServerWithSecrets = { host: this.host, keys }
       const user = castServer.toUser(server)
       const device = castServer.toDevice(server)
-      const storage = new NodeFSStorageAdapter(storageDir)
       const auth = new AuthProvider({ user, device, storage })
 
       // Set up the repo
